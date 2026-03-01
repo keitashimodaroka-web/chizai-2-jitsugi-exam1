@@ -3,54 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>知財2級 実技試験 本番形式演習</title>
+    <title>知財2級 実技・実践演習</title>
     <style>
-        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; background: #f0f2f5; padding: 20px; line-height: 1.7; color: #1c1e21; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .header { background: #2c3e50; color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .progress-bar { position: sticky; top: 10px; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 50px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 30px; text-align: center; z-index: 1000; font-weight: bold; border: 1px solid #ddd; backdrop-filter: blur(4px); }
-        .exam-card { background: white; padding: 40px; border-radius: 8px; margin-bottom: 50px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid #3498db; }
-        .case-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; border-radius: 6px; margin: 20px 0; font-size: 0.95em; }
-        .q-text { font-weight: bold; font-size: 1.15em; color: #2c3e50; margin-bottom: 25px; }
-        .choice-list { display: flex; flex-direction: column; gap: 12px; }
-        .btn { text-align: left; padding: 18px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 16px; transition: all 0.2s; }
-        .btn:hover { background: #f1f8ff; border-color: #3498db; transform: translateX(5px); }
-        .correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724 !important; font-weight: bold; }
-        .incorrect { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24 !important; }
-        .exp { display: none; padding: 20px; background: #e8f4fd; margin-top: 20px; border-radius: 8px; border-left: 5px solid #3498db; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background: #f4f7f9; padding: 20px; line-height: 1.6; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        
+        /* ステータスバーを固定 */
+        .status-bar { 
+            position: sticky; top: 0; background: white; padding: 15px; 
+            border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            margin-bottom: 30px; text-align: center; z-index: 100; font-weight: bold;
+            border: 2px solid #3498db;
+        }
+
+        .exam-card { 
+            background: white; padding: 30px; border-radius: 12px; 
+            margin-bottom: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 8px solid #ddd; /* 未回答はグレー */
+        }
+        .exam-card.answered { border-left-color: #3498db; } /* 回答後は青 */
+
+        .case-box { 
+            background: #f8f9fa; border: 1px solid #e9ecef; 
+            padding: 18px; border-radius: 8px; margin: 15px 0; 
+            font-size: 0.95em; color: #495057; line-height: 1.8;
+        }
+
+        .q-text { font-weight: bold; font-size: 1.1em; margin-bottom: 20px; color: #2c3e50; }
+
+        .choice-list { display: flex; flex-direction: column; gap: 10px; }
+        
+        /* ボタンの基本スタイル（最初は色なし） */
+        .btn { 
+            text-align: left; padding: 15px; border: 2px solid #eee; 
+            border-radius: 8px; background: #fff; cursor: pointer; 
+            font-size: 16px; transition: all 0.2s; 
+        }
+        .btn:hover { background: #f8fbff; border-color: #3498db; }
+
+        /* 正解・不正解の明確な色分け */
+        .btn.correct { 
+            background: #d4edda !important; border-color: #28a745 !important; 
+            color: #155724 !important; font-weight: bold; 
+            position: relative;
+        }
+        .btn.correct::after { content: " ✔ 正解"; margin-left: 10px; font-size: 0.8em; }
+
+        .btn.incorrect { 
+            background: #f8d7da !important; border-color: #dc3545 !important; 
+            color: #721c24 !important; 
+        }
+
+        /* 解説エリア（最初は非表示） */
+        .exp { 
+            display: none; padding: 20px; background: #fff9db; 
+            margin-top: 20px; border-radius: 8px; border: 1px dashed #f08c00;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header"><h1>知的財産管理技能検定2級</h1><p>実技試験：実践シミュレーション</p></div>
-        <div class="progress-bar" id="status">試験開始を待機中...</div>
+        <div class="header"><h1>知財2級 実技シミュレーション</h1></div>
+        <div class="status-bar" id="status">読み込み中...</div>
         <div id="quiz-area"></div>
     </div>
+
     <script src="data.js"></script>
     <script>
         const area = document.getElementById('quiz-area');
         const status = document.getElementById('status');
         let count = 0; let correctNum = 0;
+
         function build() {
             if (typeof quizData === 'undefined') return;
             quizData.forEach((d, i) => {
                 const card = document.createElement('div');
                 card.className = 'exam-card';
-                card.innerHTML = `<div style="color:#777; font-size:0.9em;">第${i+1}問</div><div class="case-box">${d.case}</div><div class="q-text">${d.q}</div><div class="choice-list">${d.choices.map((c, ci) => `<button class="btn" onclick="check(${i}, ${ci})">${c}</button>`).join('')}</div><div id="exp-${i}" class="exp"><strong>【本番の着眼点】</strong><br>${d.exp}</div>`;
+                card.id = `card-${i}`;
+                card.innerHTML = `
+                    <div style="color:#888; font-size:0.85em; margin-bottom:5px;">第 ${i+1} 問 / 全${quizData.length}問</div>
+                    <div class="case-box"><strong>【事例】</strong><br>${d.case}</div>
+                    <div class="q-text">${d.q || "以下の選択肢から適切なものを選びなさい。"}</div>
+                    <div class="choice-list" id="choices-${i}">
+                        ${d.choices.map((c, ci) => `
+                            <button class="btn" onclick="checkAnswer(${i}, ${ci})">${c}</button>
+                        `).join('')}
+                    </div>
+                    <div id="exp-${i}" class="exp">
+                        <strong>💡 解説:</strong><br>${d.exp}
+                    </div>
+                `;
                 area.appendChild(card);
             });
-            status.innerText = `0 / ${quizData.length} 完了`;
+            updateStatus();
         }
-        function check(qi, ci) {
-            const d = quizData[qi]; const exp = document.getElementById('exp-' + qi);
-            if (exp.style.display === 'block') return;
-            const buttons = document.querySelectorAll('.exam-card:nth-child('+(qi+2)+') .btn');
-            if (ci === d.ans) { buttons[ci].classList.add('correct'); correctNum++; }
-            else { buttons[ci].classList.add('incorrect'); buttons[d.ans].classList.add('correct'); }
-            exp.style.display = 'block'; count++;
-            status.innerText = `${count} / ${quizData.length} 完了 (正答率: ${Math.round(correctNum/count*100)}%)`;
+
+        function checkAnswer(qi, ci) {
+            const d = quizData[qi];
+            const card = document.getElementById(`card-${qi}`);
+            const exp = document.getElementById(`exp-${qi}`);
+            
+            // すでに回答済みの場合は何もしない
+            if (card.classList.contains('answered')) return;
+
+            const buttons = document.getElementById(`choices-${qi}`).getElementsByClassName('btn');
+            
+            // 正解・不正解の判定
+            if (ci === d.ans) {
+                buttons[ci].classList.add('correct');
+                correctNum++;
+            } else {
+                buttons[ci].classList.add('incorrect');
+                buttons[d.ans].classList.add('correct'); // 正解を強調
+            }
+
+            // 状態の更新
+            card.classList.add('answered');
+            exp.style.display = 'block';
+            count++;
+            updateStatus();
         }
+
+        function updateStatus() {
+            const rate = count > 0 ? Math.round((correctNum / count) * 100) : 0;
+            status.innerText = `進捗: ${count} / ${quizData.length} 完了 | 正答率: ${rate}%`;
+        }
+
         window.onload = build;
     </script>
 </body>
